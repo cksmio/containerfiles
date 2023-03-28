@@ -1,0 +1,43 @@
+# curl-loader (abandonware) -- https://sourceforge.net/projects/curl-loader/
+# author: Robert Iakobashvili (coroberti)
+# "A powerful C-written web application testing and load generating tool. 
+# It uses HTTP, FTP and TLS/SSL stacks, simulating tens of thousand 
+# users / clients each with own IP-address. The goal is to provide an 
+# alternative to Spirent Avalanche and Ixia IxLoad."
+# latest (stable) version is curl-loader 0.56
+
+# use RH ubi8-micro
+#FROM redhat/ubi8-minimal:8.7-6
+#FROM redhat/ubi8-minimal:latest
+FROM fedora:latest
+#LABEL maintainer="Victor Colanski <vicc@cksm.io>"
+MAINTAINER vicc <vicc@cksm.io>
+ENV OPENSSLDIR=/usr/include/openssl
+
+RUN dnf update -y
+#RUN microdnf install -y make bzip2 tar gcc patch openssl-devel libnsl2 libnsl2-devel libtirpc-devel
+RUN dnf install -y \
+    curl \
+    libcurl-devel \
+    make \
+    bzip2 \
+    zlib \
+    zlib-devel \
+    tar \
+    gcc \
+    patch \
+    openssl \
+    openssl-devel \
+    libnsl2-devel \
+    libtirpc-devel \
+    c-ares-devel
+RUN curl -s -L http://sourceforge.net/projects/curl-loader/files/latest/download | tar -jxf - -C /tmp && \
+    sed -i 's/\usr\/local\/ssl/\/usr\/include\/openssl\//g' /tmp/curl-loader-0.56/openssldir.sh && \
+    cd /tmp/curl-loader-0.56 && \
+    make debug=0 optimize=1 && \
+    make install && \
+    dnf clean all && \
+    rm -rf /tmp/*
+
+#ENTRYPOINT ["/usr/bin/curl-loader"]
+
